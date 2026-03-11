@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balance Helper</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Balance Helper">
+<meta name="theme-color" content="#00d4ff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --panel2: #0f1520;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #00ff9d;
+    --text: #e2eaf7;
+    --muted: #5a7090;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --gold: #ffd700;
+    --glow: 0 0 20px rgba(0, 212, 255, 0.3);
+    --glow2: 0 0 20px rgba(255, 107, 53, 0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,212,255,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.06) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(30,45,69,0.2) 40px, rgba(30,45,69,0.2) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(30,45,69,0.2) 40px, rgba(30,45,69,0.2) 41px);
+  }
+
+  .app-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 15px 12px 30px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 28px 0 24px;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    margin-top: 20px;
+  }
+  .header-icon { font-size: 2rem; margin-bottom: 6px; }
+  header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent), #fff, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px; height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: var(--glow);
+  }
+
+  /* INPUT STYLE */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .field input {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.5rem;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+  .field input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6) sepia(1) hue-rotate(170deg);
+    cursor: pointer;
+  }
+
+  /* TWO COLUMN LAYOUT */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* PUMP CARD */
+  .pump-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .pump-card:last-child { margin-bottom: 0; }
+  .pump-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pump-label .pump-dot {
+    width: 6px; height: 6px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: var(--glow2);
+  }
+  .pump-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .pump-fields .field.full { grid-column: 1/-1; }
+
+  /* DEPOSIT ROW */
+  .deposit-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 8px;
+  }
+  .deposit-row .field { flex: 1; }
+  .remove-btn {
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.3);
+    color: var(--danger);
+    border-radius: 8px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .remove-btn:hover { background: rgba(255,71,87,0.25); }
+
+  /* ADD BUTTON */
+  .add-deposit-btn {
+    background: rgba(0,212,255,0.08);
+    border: 1px dashed rgba(0,212,255,0.4);
+    color: var(--accent);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    margin-top: 4px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .add-deposit-btn:hover {
+    background: rgba(0,212,255,0.15);
+    border-style: solid;
+  }
+
+  /* ACTION BUTTONS */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .btn {
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+  .btn:hover::after { background: rgba(255,255,255,0.06); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-calc {
+    background: linear-gradient(135deg, #0077aa, var(--accent));
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+  }
+  .btn-clear {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-clear:hover { color: var(--text); border-color: var(--muted); }
+  .btn-save {
+    background: linear-gradient(135deg, #006633, var(--accent3));
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,255,157,0.25);
+    font-size: 1.05rem;
+    padding: 16px;
+  }
+  .btn-copy {
+    background: linear-gradient(135deg, #1a3a5c, #0077aa);
+    color: var(--accent);
+    box-shadow: 0 4px 20px rgba(0,119,170,0.25);
+    font-size: 1.05rem;
+    padding: 16px;
+    border: 1px solid rgba(0,212,255,0.3);
+  }
+
+  /* OUTPUT SECTION */
+  #output-section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #output-section.visible { display: block; }
+
+  .output-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .output-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+    opacity: 0.6;
+  }
+
+  .output-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .output-title::before {
+    content: '';
+    width: 3px; height: 14px;
+    background: var(--accent3);
+    border-radius: 2px;
+    box-shadow: 0 0 10px var(--accent3);
+  }
+
+  /* PUMP RESULT */
+  .pump-result {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .pump-result:last-child { margin-bottom: 0; }
+  .pump-result-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 12px;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .result-item {
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .result-item .r-label {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .result-item .r-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* SUMMARY ROW */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .summary-item {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .summary-item .s-label {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .summary-item .s-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* SHORT/OVER INDICATOR */
+  .balance-indicator {
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .balance-indicator.over   { background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.3); }
+  .balance-indicator.short  { background: rgba(255,71,87,0.08);  border: 1px solid rgba(255,71,87,0.3); }
+  .balance-indicator.balanced { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.3); }
+  .bi-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .balance-indicator.over .bi-label     { color: var(--success); }
+  .balance-indicator.short .bi-label    { color: var(--danger); }
+  .balance-indicator.balanced .bi-label { color: var(--accent); }
+  .bi-badge {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .balance-indicator.over .bi-badge     { background: rgba(46,213,115,0.2); color: var(--success); }
+  .balance-indicator.short .bi-badge    { background: rgba(255,71,87,0.2);  color: var(--danger); }
+  .balance-indicator.balanced .bi-badge { background: rgba(0,212,255,0.2);  color: var(--accent); }
+  .bi-amount {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .balance-indicator.over .bi-amount     { color: var(--success); }
+  .balance-indicator.short .bi-amount    { color: var(--danger); }
+  .balance-indicator.balanced .bi-amount { color: var(--accent); }
+
+  /* SAVE SECTION */
+  .save-section {
+    margin-top: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* SAVED RECORDS SECTION */
+  #saved-section { margin-top: 24px; }
+  .saved-record {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .saved-record:hover { border-color: var(--accent); }
+  .saved-record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .saved-record-date { font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--accent); }
+  .saved-record-meta { font-size: 0.75rem; color: var(--muted); }
+  .saved-record-del {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .saved-record-del:hover { opacity: 1; }
+  .saved-record-body {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: pre-wrap;
+    display: none;
+  }
+  .saved-record.expanded .saved-record-body { display: block; color: var(--text); }
+
+  /* MONTHLY SUMMARY */
+  .month-block { margin-bottom: 14px; }
+  .month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,215,0,0.06);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 10px 10px 0 0;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .month-header:hover { background: rgba(255,215,0,0.1); }
+  .month-header-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .month-header-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(255,215,0,0.15);
+    color: var(--gold);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+  .month-chevron { color: var(--gold); font-size: 0.9rem; transition: transform 0.25s; }
+  .month-block.open .month-chevron { transform: rotate(180deg); }
+  .month-body {
+    display: none;
+    background: var(--panel2);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 16px;
+  }
+  .month-block.open .month-body { display: block; }
+
+  .month-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .month-stat {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .month-stat .ms-label {
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 5px;
+  }
+  .month-stat .ms-value { font-family: 'Share Tech Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--gold); }
+  .month-stat.over-stat .ms-value  { color: var(--success); }
+  .month-stat.short-stat .ms-value { color: var(--danger); }
+  .month-stat.net-over .ms-value   { color: var(--success); }
+  .month-stat.net-short .ms-value  { color: var(--danger); }
+
+  .month-days-title {
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 8px;
+  }
+  .table-scroll-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+  .month-days-table { width: 100%; min-width: 460px; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 0.78rem; }
+  .month-days-table th {
+    text-align: left; color: var(--muted); font-size: 0.62rem; letter-spacing: 1px; text-transform: uppercase;
+    padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; background: rgba(0,0,0,0.2);
+  }
+  .month-days-table td {
+    padding: 8px 10px; border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text); vertical-align: middle; white-space: nowrap;
+  }
+  .month-days-table tr:last-child td { border-bottom: none; }
+  .month-days-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .tag-over  { color: var(--success); font-weight: 700; }
+  .tag-short { color: var(--danger);  font-weight: 700; }
+  .tag-bal   { color: var(--accent); }
+
+  /* TOAST ALERTS */
+  #toast-container {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none; width: min(94vw, 420px);
+  }
+  .toast {
+    display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
+    border-radius: 12px; font-family: 'Exo 2', sans-serif; font-size: 0.88rem; line-height: 1.4;
+    pointer-events: all; animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+  }
+  .toast.hide { animation: toastOut 0.3s ease forwards; }
+  @keyframes toastIn  { from { opacity: 0; transform: translateY(-16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.95); } }
+  .toast.warn    { background: rgba(20,14,6,0.95);  border: 1px solid rgba(255,170,0,0.5);  color: #ffcc55; }
+  .toast.error   { background: rgba(20,6,6,0.95);   border: 1px solid rgba(255,71,87,0.5);  color: #ff7a87; }
+  .toast.success { background: rgba(4,18,10,0.95);  border: 1px solid rgba(46,213,115,0.5); color: #5debb8; }
+  .toast-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .toast-content { flex: 1; }
+  .toast-title { font-weight: 700; letter-spacing: 1px; margin-bottom: 2px; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; text-transform: uppercase; }
+  .toast-msg { opacity: 0.85; font-size: 0.82rem; }
+  .toast-close { background: none; border: none; color: inherit; opacity: 0.5; cursor: pointer; font-size: 1rem; padding: 0; margin-left: 4px; flex-shrink: 0; }
+  .toast-close:hover { opacity: 1; }
+
+  /* PIN MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px); z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: min(400px, 100%);
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .modal-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--danger), transparent);
+    border-radius: 16px 16px 0 0;
+  }
+  .modal-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--danger); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .modal-subtitle { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; font-family: 'Share Tech Mono', monospace; }
+  .modal-input {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.6rem;
+    letter-spacing: 10px;
+    text-align: center;
+    padding: 12px;
+    outline: none;
+    width: 100%;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .modal-input:focus { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(255,71,87,0.15); }
+  .modal-input.shake { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-btn {
+    padding: 12px; border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .modal-btn-confirm { background: linear-gradient(135deg, #8b0000, var(--danger)); color: #fff; box-shadow: 0 4px 14px rgba(255,71,87,0.3); }
+  .modal-btn-confirm:hover { opacity: 0.9; }
+  .modal-btn-cancel { background: var(--panel2); border: 1px solid var(--border); color: var(--muted); }
+  .modal-btn-cancel:hover { color: var(--text); border-color: var(--muted); }
+
+  /* PIN MANAGEMENT CARD */
+  .pin-manage-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .pin-manage-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+  }
+  .pin-manage-row .field input { font-size: 1rem; letter-spacing: 6px; text-align: center; }
+  .pin-set-btn {
+    background: linear-gradient(135deg, #0077aa, var(--accent));
+    color: #000; border: none; border-radius: 8px;
+    padding: 0 16px; height: 44px;
+    font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  }
+  .pin-set-btn:hover { opacity: 0.9; }
+  .pin-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; padding: 8px 12px; border-radius: 6px; text-align: center;
+  }
+  .pin-status.set     { background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.3); color: var(--success); }
+  .pin-status.not-set { background: rgba(255,71,87,0.08);  border: 1px solid rgba(255,71,87,0.3);  color: var(--danger); }
+
+  /* THREE DOTS BUTTON */
+  .three-dots-btn {
+    position: absolute;
+    top: 28px; right: 4px;
+    background: none;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    z-index: 10;
+  }
+  .three-dots-btn:hover {
+    color: var(--accent);
+    border-color: var(--border);
+    background: rgba(0,212,255,0.06);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 580px) {
+    .two-col         { grid-template-columns: 1fr; }
+    .action-row      { grid-template-columns: 1fr; }
+    .pump-fields     { grid-template-columns: 1fr; }
+    .pump-fields .field.full { grid-column: 1; }
+    .save-section    { grid-template-columns: 1fr; }
+    .pin-manage-row  { grid-template-columns: 1fr 1fr; }
+    .pin-manage-row .pin-set-btn { grid-column: 1/-1; }
+  }
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay hidden" id="pin-modal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 PIN Required</div>
+    <div class="modal-subtitle" id="pin-modal-subtitle">Enter your PIN to delete this record.</div>
+    <input type="password" class="modal-input" id="pin-modal-input" maxlength="6" placeholder="••••" inputmode="numeric">
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closePinModal()">Cancel</button>
+      <button class="modal-btn modal-btn-confirm" onclick="confirmPinAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-wrapper">
+
+  <header>
+    <button class="three-dots-btn" onclick="togglePinCard()" title="Settings">&#8942;</button>
+    <div class="header-icon">⛽</div>
+    <h1>Balance Helper</h1>
+    <p>Fuel Station Shift Balance Calculator</p>
+  </header>
+
+  <!-- DATE ONLY -->
+  <div class="card">
+    <div class="card-title">Shift Details</div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="shift-date">
+    </div>
+  </div>
+
+  <!-- TWO COLUMN: PUMPS + POS/DEPOSITS -->
+  <div class="two-col">
+
+    <!-- PUMPS (each has its own price input) -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Meter Readings</div>
+      <div id="pumps-container">
+
+        <div class="pump-card">
+          <div class="pump-label"><span class="pump-dot"></span>Pump 1</div>
+          <div class="pump-fields">
+            <div class="field full">
+              <label>Pump No.</label>
+              <input type="text" class="pump-num" placeholder="e.g. P1">
+            </div>
+            <div class="field">
+              <label>Opening</label>
+              <input type="number" class="opening-meter" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <label>Closing</label>
+              <input type="number" class="closing-meter" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="field full">
+              <label>Price Per Liter (₦)</label>
+              <input type="number" class="pump-price" placeholder="e.g. 617" step="0.01" min="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="pump-card">
+          <div class="pump-label"><span class="pump-dot"></span>Pump 2</div>
+          <div class="pump-fields">
+            <div class="field full">
+              <label>Pump No.</label>
+              <input type="text" class="pump-num" placeholder="e.g. P2">
+            </div>
+            <div class="field">
+              <label>Opening</label>
+              <input type="number" class="opening-meter" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <label>Closing</label>
+              <input type="number" class="closing-meter" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="field full">
+              <label>Price Per Liter (₦)</label>
+              <input type="number" class="pump-price" placeholder="e.g. 617" step="0.01" min="0">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <button class="add-deposit-btn" id="add-pump-btn" style="margin-top:12px">＋ Add Pump</button>
+    </div>
+
+    <!-- POS & DEPOSITS -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">POS &amp; Deposits</div>
+      <div class="field" style="margin-bottom:14px">
+        <label>POS (₦)</label>
+        <input type="number" id="pos-amount" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div id="deposits-container">
+        <div class="deposit-row">
+          <div class="field">
+            <label>Deposit 1 (₦)</label>
+            <input type="number" class="deposit-input" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="deposit-row">
+          <div class="field">
+            <label>Deposit 2 (₦)</label>
+            <input type="number" class="deposit-input" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+      <button class="add-deposit-btn" id="add-deposit-btn">＋ Add Deposit</button>
+    </div>
+
+  </div>
+
+  <!-- CALCULATE & CLEAR -->
+  <div class="action-row">
+    <button class="btn btn-calc" onclick="calculate()">⚡ Calculate</button>
+    <button class="btn btn-clear" onclick="clearAll()">↺ Clear All</button>
+  </div>
+
+  <!-- OUTPUT SECTION -->
+  <div id="output-section">
+
+    <div class="output-card">
+      <div class="output-title">Pump-by-Pump Breakdown</div>
+      <div id="pump-results"></div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-title">Shift Summary</div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div id="balance-indicator-container"></div>
+    </div>
+
+    <div class="save-section">
+      <button class="btn btn-save" onclick="saveRecord()">💾 Save Record</button>
+      <button class="btn btn-copy" onclick="copyTextResult()">📋 Copy Result</button>
+    </div>
+
+  </div>
+
+  <!-- PIN MANAGEMENT -->
+  <div class="card" id="pin-management-card" style="margin-top:24px;display:none">
+    <div class="card-title" style="color:var(--danger)">🔐 PIN Management</div>
+    <div class="pin-manage-card">
+      <div id="pin-status-display"></div>
+      <div style="margin-top:12px">
+        <div id="current-pin-row" style="display:none;margin-bottom:10px">
+          <div class="field">
+            <label>Current PIN</label>
+            <input type="password" id="current-pin-input" maxlength="6" placeholder="••••" inputmode="numeric">
+          </div>
+        </div>
+        <div class="pin-manage-row">
+          <div class="field">
+            <label>New PIN</label>
+            <input type="password" id="new-pin-input" maxlength="6" placeholder="••••" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label>Confirm PIN</label>
+            <input type="password" id="confirm-pin-input" maxlength="6" placeholder="••••" inputmode="numeric">
+          </div>
+          <button class="pin-set-btn" onclick="savePin()">Set PIN</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);font-family:'Share Tech Mono',monospace;text-align:center">
+          PIN is required to delete saved records · Leave both fields blank to disable PIN protection
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVED RECORDS -->
+  <div id="saved-section"></div>
+
+  <!-- MONTHLY SUMMARY -->
+  <div id="monthly-section"></div>
+
+</div>
+
+<script>
+  // ── Pump management ────────────────────────────────────────
+  let pumpCount = 2;
+
+  document.getElementById('add-pump-btn').addEventListener('click', () => {
+    pumpCount++;
+    const container = document.getElementById('pumps-container');
+    const card = document.createElement('div');
+    card.className = 'pump-card';
+    card.innerHTML = `
+      <div class="pump-label" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span class="pump-dot"></span>Pump ${pumpCount}</div>
+        <button class="remove-btn" style="width:28px;height:28px;font-size:0.85rem" onclick="removePump(this)" title="Remove pump">✕</button>
+      </div>
+      <div class="pump-fields">
+        <div class="field full">
+          <label>Pump No.</label>
+          <input type="text" class="pump-num" placeholder="e.g. P${pumpCount}">
+        </div>
+        <div class="field">
+          <label>Opening</label>
+          <input type="number" class="opening-meter" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Closing</label>
+          <input type="number" class="closing-meter" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="field full">
+          <label>Price Per Liter (₦)</label>
+          <input type="number" class="pump-price" placeholder="e.g. 617" step="0.01" min="0">
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  function removePump(btn) {
+    const cards = document.querySelectorAll('#pumps-container .pump-card');
+    if (cards.length <= 1) {
+      showToast('warn', 'Cannot Remove', 'At least one pump is required.');
+      return;
+    }
+    btn.closest('.pump-card').remove();
+  }
+
+  // ── Deposit management ──────────────────────────────────
+  let depositCount = 2;
+  document.getElementById('add-deposit-btn').addEventListener('click', () => {
+    depositCount++;
+    const container = document.getElementById('deposits-container');
+    const row = document.createElement('div');
+    row.className = 'deposit-row';
+    row.innerHTML = `
+      <div class="field">
+        <label>Deposit ${depositCount} (₦)</label>
+        <input type="number" class="deposit-input" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <button class="remove-btn" onclick="removeDeposit(this)" title="Remove">✕</button>
+    `;
+    container.appendChild(row);
+  });
+
+  function removeDeposit(btn) { btn.closest('.deposit-row').remove(); }
+
+  // ── Toast Alerts ────────────────────────────────────────
+  function showToast(type, title, msg, duration = 4000) {
+    const icons = { warn: '⚠️', error: '🚫', success: '✅' };
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <span class="toast-icon">${icons[type]}</span>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        <div class="toast-msg">${msg}</div>
+      </div>
+      <button class="toast-close" onclick="dismissToast(this.parentElement)">✕</button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => dismissToast(toast), duration);
+  }
+  function dismissToast(toast) {
+    if (!toast || toast.classList.contains('hide')) return;
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }
+
+  // ── Formatting ──────────────────────────────────────────
+  function fmt(n) { return n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  // ── PIN Management ──────────────────────────────────────
+  function getPin() { return localStorage.getItem('balanceHelperPin') || ''; }
+
+  function renderPinStatus() {
+    const pin = getPin();
+    const el = document.getElementById('pin-status-display');
+    el.innerHTML = pin
+      ? `<div class="pin-status set">🔒 PIN is SET — delete operations require PIN verification</div>`
+      : `<div class="pin-status not-set">🔓 No PIN set — records can be deleted without verification</div>`;
+    const currentRow = document.getElementById('current-pin-row');
+    if (currentRow) currentRow.style.display = pin ? 'block' : 'none';
+  }
+
+  function savePin() {
+    const newPin     = document.getElementById('new-pin-input').value.trim();
+    const confirmPin = document.getElementById('confirm-pin-input').value.trim();
+    const currentPin = document.getElementById('current-pin-input').value.trim();
+    const storedPin  = getPin();
+
+    // If a PIN is already set, validate the current PIN first
+    if (storedPin) {
+      if (!currentPin) {
+        showToast('error', 'Current PIN Required', 'Please enter your current PIN to make changes.');
+        document.getElementById('current-pin-input').focus();
+        return;
+      }
+      if (currentPin !== storedPin) {
+        const input = document.getElementById('current-pin-input');
+        input.classList.remove('shake');
+        void input.offsetWidth;
+        input.classList.add('shake');
+        input.value = '';
+        showToast('error', 'Wrong PIN', 'Current PIN is incorrect. No changes were made.');
+        return;
+      }
+    }
+
+    if (!newPin && !confirmPin) {
+      localStorage.removeItem('balanceHelperPin');
+      document.getElementById('current-pin-input').value = '';
+      renderPinStatus();
+      showToast('warn', 'PIN Removed', 'Delete protection is now disabled.');
+      return;
+    }
+    if (!/^\d{4,6}$/.test(newPin)) {
+      showToast('error', 'Invalid PIN', 'PIN must be 4–6 digits (numbers only).');
+      document.getElementById('new-pin-input').focus();
+      return;
+    }
+    if (newPin !== confirmPin) {
+      showToast('error', 'PIN Mismatch', 'The two PINs you entered do not match. Try again.');
+      document.getElementById('confirm-pin-input').value = '';
+      document.getElementById('confirm-pin-input').focus();
+      return;
+    }
+
+    localStorage.setItem('balanceHelperPin', newPin);
+    document.getElementById('current-pin-input').value  = '';
+    document.getElementById('new-pin-input').value      = '';
+    document.getElementById('confirm-pin-input').value  = '';
+    renderPinStatus();
+    showToast('success', 'PIN Updated', 'Your delete PIN has been saved successfully.');
+  }
+
+  // ── PIN Modal ───────────────────────────────────────────
+  let pendingDeleteIdx = null;
+
+  function openPinModal(idx) {
+    pendingDeleteIdx = idx;
+    document.getElementById('pin-modal-input').value = '';
+    document.getElementById('pin-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('pin-modal-input').focus(), 100);
+  }
+
+  function closePinModal() {
+    pendingDeleteIdx = null;
+    document.getElementById('pin-modal').classList.add('hidden');
+    document.getElementById('pin-modal-input').value = '';
+  }
+
+  function confirmPinAction() {
+    const entered   = document.getElementById('pin-modal-input').value.trim();
+    const storedPin = getPin();
+    if (entered !== storedPin) {
+      const input = document.getElementById('pin-modal-input');
+      input.classList.remove('shake');
+      void input.offsetWidth;           // reflow to restart animation
+      input.classList.add('shake');
+      input.value = '';
+      showToast('error', 'Wrong PIN', 'Incorrect PIN. The record was not deleted.');
+      return;
+    }
+    const idx = pendingDeleteIdx;
+    closePinModal();
+    performDelete(idx);
+  }
+
+  document.getElementById('pin-modal-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  confirmPinAction();
+    if (e.key === 'Escape') closePinModal();
+  });
+  document.getElementById('pin-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePinModal();
+  });
+
+  // ── Calculate ───────────────────────────────────────────
+  let lastResult = null;
+
+  function calculate() {
+    const date = document.getElementById('shift-date').value;
+    if (!date) {
+      showToast('warn', 'Date Missing', 'Please select a shift date before calculating.');
+      document.getElementById('shift-date').focus();
+      return;
+    }
+
+    const pumps = document.querySelectorAll('#pumps-container .pump-card');
+    let hasAnyMeterInput = false;
+    let meterError = null;
+    let priceError = null;
+
+    pumps.forEach((card, idx) => {
+      const openVal  = card.querySelector('.opening-meter').value;
+      const closeVal = card.querySelector('.closing-meter').value;
+      const priceVal = card.querySelector('.pump-price').value;
+      if (openVal || closeVal) hasAnyMeterInput = true;
+
+      const open  = parseFloat(openVal)  || 0;
+      const close = parseFloat(closeVal) || 0;
+      const price = parseFloat(priceVal);
+      const num   = card.querySelector('.pump-num').value || `Pump ${idx + 1}`;
+
+      if ((openVal || closeVal) && close < open && !meterError)
+        meterError = `${num}: Closing meter (${close}) is less than opening meter (${open}).`;
+      if ((openVal || closeVal) && (!priceVal || isNaN(price) || price <= 0) && !priceError)
+        priceError = `${num}: Price per liter must be a valid number greater than zero.`;
+    });
+
+    if (!hasAnyMeterInput) { showToast('warn', 'No Meter Readings', "Please enter at least one pump's opening and closing meter readings."); return; }
+    if (priceError)        { showToast('error', 'Missing Price', priceError); return; }
+    if (meterError)        { showToast('error', 'Invalid Meter Reading', meterError); return; }
+
+    const pos            = parseFloat(document.getElementById('pos-amount').value) || 0;
+    const deposits       = Array.from(document.querySelectorAll('.deposit-input')).map(i => parseFloat(i.value) || 0);
+    const totalDeposited = pos + deposits.reduce((a, b) => a + b, 0);
+
+    let pumpData = [], totalLiters = 0, totalAmountDue = 0;
+
+    pumps.forEach((card, idx) => {
+      const num   = card.querySelector('.pump-num').value || `P${idx + 1}`;
+      const open  = parseFloat(card.querySelector('.opening-meter').value) || 0;
+      const close = parseFloat(card.querySelector('.closing-meter').value) || 0;
+      const price = parseFloat(card.querySelector('.pump-price').value)    || 0;
+      const liters = Math.max(0, close - open);
+      const amount = liters * price;
+      totalLiters += liters;
+      totalAmountDue += amount;
+      pumpData.push({ num, open, close, price, liters, amount });
+    });
+
+    const diff = totalDeposited - totalAmountDue;
+
+    // Pump results
+    const pumpResultsEl = document.getElementById('pump-results');
+    pumpResultsEl.innerHTML = '';
+    pumpData.forEach(p => {
+      pumpResultsEl.innerHTML += `
+        <div class="pump-result">
+          <div class="pump-result-title">⛽ Pump ${p.num}</div>
+          <div class="result-grid">
+            <div class="result-item"><div class="r-label">Opening Meter</div><div class="r-value">${fmt(p.open)}</div></div>
+            <div class="result-item"><div class="r-label">Closing Meter</div><div class="r-value">${fmt(p.close)}</div></div>
+            <div class="result-item"><div class="r-label">Price / Liter</div><div class="r-value">₦${fmt(p.price)}</div></div>
+            <div class="result-item"><div class="r-label">Total Liters</div><div class="r-value">${fmt(p.liters)} L</div></div>
+            <div class="result-item"><div class="r-label">Amount (₦)</div><div class="r-value">₦${fmt(p.amount)}</div></div>
+          </div>
+        </div>`;
+    });
+
+    // Summary
+    document.getElementById('summary-grid').innerHTML = `
+      <div class="summary-item"><div class="s-label">Total Liters Sold</div><div class="s-value">${fmt(totalLiters)} L</div></div>
+      <div class="summary-item"><div class="s-label">Amount to Deposit</div><div class="s-value">₦${fmt(totalAmountDue)}</div></div>
+      <div class="summary-item"><div class="s-label">POS</div><div class="s-value">₦${fmt(pos)}</div></div>
+      <div class="summary-item"><div class="s-label">Total Deposited</div><div class="s-value">₦${fmt(totalDeposited)}</div></div>
+    `;
+
+    // Balance indicator
+    let cls, badge, label;
+    if (diff > 0)      { cls = 'over';     badge = '▲ OVER';     label = 'You are over by'; }
+    else if (diff < 0) { cls = 'short';    badge = '▼ SHORT';    label = 'You are short by'; }
+    else               { cls = 'balanced'; badge = '✓ BALANCED'; label = 'Perfectly balanced'; }
+
+    document.getElementById('balance-indicator-container').innerHTML = `
+      <div class="balance-indicator ${cls}">
+        <div><div class="bi-label">${label}</div><span class="bi-badge">${badge}</span></div>
+        <div class="bi-amount">₦${fmt(Math.abs(diff))}</div>
+      </div>`;
+
+    document.getElementById('output-section').classList.add('visible');
+    document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showToast('success', 'Calculated', 'Shift balance calculated successfully. Review results below.');
+
+    lastResult = { date, pos, deposits, pumpData, totalLiters, totalAmountDue, totalDeposited, diff };
+  }
+
+  // ── Build Text Report ───────────────────────────────────
+  function buildTextReport(r) {
+    let t = `============================\n`;
+    t += `  BALANCE HELPER — SHIFT REPORT\n`;
+    t += `  Date: ${r.date}\n`;
+    t += `============================\n\n`;
+
+    r.pumpData.forEach(p => {
+      t += `--- Pump ${p.num} ---\n`;
+      t += `  Opening Meter : ${fmt(p.open)}\n`;
+      t += `  Closing Meter : ${fmt(p.close)}\n`;
+      t += `  Price/Liter   : ₦${fmt(p.price)}\n`;
+      t += `  Total Liters  : ${fmt(p.liters)} L\n`;
+      t += `  Amount        : ₦${fmt(p.amount)}\n\n`;
+    });
+
+    t += `--- SUMMARY ---\n`;
+    t += `  Total Liters Sold   : ${fmt(r.totalLiters)} L\n`;
+    t += `  Amount to Deposit   : ₦${fmt(r.totalAmountDue)}\n`;
+    t += `  POS                 : ₦${fmt(r.pos)}\n`;
+    r.deposits.forEach((d, i) => { t += `  Deposit ${i + 1}           : ₦${fmt(d)}\n`; });
+    t += `  Total Deposited     : ₦${fmt(r.totalDeposited)}\n\n`;
+
+    const diff = r.diff;
+    if (diff > 0)      t += `  STATUS: OVER by ₦${fmt(diff)}\n`;
+    else if (diff < 0) t += `  STATUS: SHORT by ₦${fmt(Math.abs(diff))}\n`;
+    else               t += `  STATUS: BALANCED ✓\n`;
+    t += `============================\n`;
+    return t;
+  }
+
+  // ── Copy Result to Clipboard ────────────────────────────
+  function copyTextResult() {
+    if (!lastResult) {
+      showToast('warn', 'Nothing to Copy', 'Please calculate a shift balance first.');
+      return;
+    }
+    const text = buildTextReport(lastResult);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('success', 'Copied!', 'Shift report copied to clipboard.'))
+        .catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('success', 'Copied!', 'Shift report copied to clipboard.');
+  }
+
+  // ── Clear ───────────────────────────────────────────────
+  function clearAll() {
+    // Clear all inputs except PIN management section and modal
+    document.querySelectorAll('#shift-date, #pos-amount, .pump-num, .opening-meter, .closing-meter, .pump-price').forEach(i => { i.value = ''; });
+    document.querySelectorAll('.deposit-input').forEach(i => { i.value = ''; });
+
+    const dc = document.getElementById('deposits-container');
+    dc.innerHTML = `
+      <div class="deposit-row">
+        <div class="field"><label>Deposit 1 (₦)</label><input type="number" class="deposit-input" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="deposit-row">
+        <div class="field"><label>Deposit 2 (₦)</label><input type="number" class="deposit-input" placeholder="0.00" step="0.01" min="0"></div>
+      </div>`;
+    depositCount = 2;
+    document.getElementById('output-section').classList.remove('visible');
+    lastResult = null;
+    document.getElementById('shift-date').value = new Date().toISOString().slice(0, 10);
+  }
+
+  // ── Save Record ─────────────────────────────────────────
+  function saveRecord() {
+    if (!lastResult) { showToast('warn', 'Nothing to Save', 'Please calculate a shift balance first before saving.'); return; }
+    const r = lastResult;
+    if (!r.date) { showToast('warn', 'Date Missing', 'No date was set. Please add a date and recalculate.'); return; }
+
+    const existing  = JSON.parse(localStorage.getItem('balanceHelperRecords') || '[]');
+    const duplicate = existing.find(rec => rec.date === r.date);
+    if (duplicate) {
+      showToast('warn', 'Duplicate Date', `A record for ${r.date} already exists. Delete it first to replace it.`);
+      return;
+    }
+
+    const text    = buildTextReport(r);
+    const records = JSON.parse(localStorage.getItem('balanceHelperRecords') || '[]');
+    records.unshift({ date: r.date, text, timestamp: Date.now(),
+      totalLiters: r.totalLiters, totalAmountDue: r.totalAmountDue,
+      totalDeposited: r.totalDeposited, diff: r.diff });
+    localStorage.setItem('balanceHelperRecords', JSON.stringify(records));
+    renderSaved();
+    renderMonthly();
+    showToast('success', 'Record Saved', `Shift report for ${r.date} saved successfully.`);
+    document.getElementById('saved-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── Delete Record ───────────────────────────────────────
+  function deleteRecord(e, idx) {
+    e.stopPropagation();
+    const pin = getPin();
+    if (pin) { openPinModal(idx); }
+    else     { performDelete(idx); }
+  }
+
+  function performDelete(idx) {
+    const records = JSON.parse(localStorage.getItem('balanceHelperRecords') || '[]');
+    const date = records[idx] ? records[idx].date : '';
+    records.splice(idx, 1);
+    localStorage.setItem('balanceHelperRecords', JSON.stringify(records));
+    renderSaved();
+    renderMonthly();
+    showToast('success', 'Deleted', `Record${date ? ' for ' + date : ''} has been removed.`);
+  }
+
+  // ── Render Saved ────────────────────────────────────────
+  function renderSaved() {
+    const records = JSON.parse(localStorage.getItem('balanceHelperRecords') || '[]');
+    const sec = document.getElementById('saved-section');
+    if (!records.length) { sec.innerHTML = ''; return; }
+
+    let html = `
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
+        <div class="month-header" onclick="toggleSavedSection()" id="saved-toggle-header">
+          <div class="month-header-title">
+            💾 Saved Records
+            <span class="month-header-badge">${records.length} record${records.length > 1 ? 's' : ''}</span>
+          </div>
+          <span class="month-chevron" id="saved-chevron">▼</span>
+        </div>
+        <div id="saved-body" style="display:none;padding:16px">`;
+
+    records.forEach((rec, idx) => {
+      html += `
+        <div class="saved-record">
+          <div class="saved-record-header" onclick="toggleRecord(this.parentElement)" style="cursor:pointer">
+            <span class="saved-record-date">📅 ${rec.date}</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="saved-record-meta">${new Date(rec.timestamp).toLocaleTimeString()}</span>
+              <span style="color:var(--muted);font-size:0.8rem;transition:transform 0.25s" class="rec-chevron">▼</span>
+              <button class="saved-record-del" onclick="deleteRecord(event, ${idx})" title="Delete">🗑</button>
+            </div>
+          </div>
+          <div class="saved-record-body">${rec.text}</div>
+        </div>`;
+    });
+
+    html += `</div></div>`;
+    sec.innerHTML = html;
+  }
+
+  function toggleSavedSection() {
+    const body = document.getElementById('saved-body');
+    const chev = document.getElementById('saved-chevron');
+    const open = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+  }
+
+  function toggleRecord(el) {
+    el.classList.toggle('expanded');
+    const chev = el.querySelector('.rec-chevron');
+    if (chev) chev.style.transform = el.classList.contains('expanded') ? 'rotate(180deg)' : '';
+  }
+
+  // ── Monthly Summary ─────────────────────────────────────
+  function getMonthKey(dateStr) {
+    if (!dateStr) return 'Unknown';
+    const [y, m] = dateStr.split('-');
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    return `${months[parseInt(m, 10) - 1]} ${y}`;
+  }
+
+  function renderMonthly() {
+    const records = JSON.parse(localStorage.getItem('balanceHelperRecords') || '[]');
+    const sec = document.getElementById('monthly-section');
+    if (!records.length) { sec.innerHTML = ''; return; }
+
+    const months = {};
+    records.forEach(r => {
+      const key = getMonthKey(r.date);
+      if (!months[key]) months[key] = { key, records: [], order: r.date ? r.date.slice(0, 7) : '0000-00' };
+      months[key].records.push(r);
+    });
+
+    const sorted = Object.values(months).sort((a, b) => b.order.localeCompare(a.order));
+
+    let html = `<div class="card" style="margin-top:8px"><div class="card-title" style="color:var(--gold)">Monthly Summary</div>`;
+
+    sorted.forEach((mo, mi) => {
+      const recs = mo.records;
+      let totalLiters = 0, totalAmount = 0, totalDeposited = 0, totalOver = 0, totalShort = 0, netDiff = 0;
+      recs.forEach(r => {
+        totalLiters    += (r.totalLiters    || 0);
+        totalAmount    += (r.totalAmountDue || 0);
+        totalDeposited += (r.totalDeposited || 0);
+        const d = r.diff || 0;
+        netDiff += d;
+        if (d > 0) totalOver  += d;
+        else if (d < 0) totalShort += Math.abs(d);
+      });
+
+      const netCls   = netDiff > 0 ? 'net-over' : netDiff < 0 ? 'net-short' : '';
+      const netLabel = netDiff > 0 ? `+₦${fmt(netDiff)}` : netDiff < 0 ? `-₦${fmt(Math.abs(netDiff))}` : '₦0.00';
+
+      html += `
+        <div class="month-block" id="month-${mi}">
+          <div class="month-header" onclick="toggleMonth('month-${mi}')">
+            <div class="month-header-title">📅 ${mo.key}<span class="month-header-badge">${recs.length} shift${recs.length > 1 ? 's' : ''}</span></div>
+            <span class="month-chevron">▼</span>
+          </div>
+          <div class="month-body">
+            <div class="month-stats">
+              <div class="month-stat"><div class="ms-label">Total Liters Sold</div><div class="ms-value">${fmt(totalLiters)} L</div></div>
+              <div class="month-stat"><div class="ms-label">Total Amount Due</div><div class="ms-value">₦${fmt(totalAmount)}</div></div>
+              <div class="month-stat"><div class="ms-label">Total Deposited</div><div class="ms-value">₦${fmt(totalDeposited)}</div></div>
+              <div class="month-stat over-stat"><div class="ms-label">Total Overs</div><div class="ms-value">+₦${fmt(totalOver)}</div></div>
+              <div class="month-stat short-stat"><div class="ms-label">Total Shorts</div><div class="ms-value">-₦${fmt(totalShort)}</div></div>
+              <div class="month-stat ${netCls}"><div class="ms-label">Net Balance</div><div class="ms-value">${netLabel}</div></div>
+            </div>
+            <div class="month-days-title">Daily Breakdown</div>
+            <div class="table-scroll-wrap">
+              <table class="month-days-table">
+                <thead><tr><th>Date</th><th>Liters (L)</th><th>Due (₦)</th><th>Deposited (₦)</th><th>Status</th></tr></thead>
+                <tbody>
+                  ${recs.map(r => {
+                    const d = r.diff || 0;
+                    const tag = d > 0
+                      ? `<span class="tag-over">▲ Over ₦${fmt(d)}</span>`
+                      : d < 0
+                      ? `<span class="tag-short">▼ Short ₦${fmt(Math.abs(d))}</span>`
+                      : `<span class="tag-bal">✓ Bal.</span>`;
+                    return `<tr>
+                      <td>${r.date || '—'}</td>
+                      <td>${fmt(r.totalLiters || 0)}</td>
+                      <td>${fmt(r.totalAmountDue || 0)}</td>
+                      <td>${fmt(r.totalDeposited || 0)}</td>
+                      <td>${tag}</td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    sec.innerHTML = html;
+  }
+
+  function toggleMonth(id) { document.getElementById(id).classList.toggle('open'); }
+
+  // ── Toggle PIN Card ─────────────────────────────────────
+  function togglePinCard() {
+    const card = document.getElementById('pin-management-card');
+    const isHidden = card.style.display === 'none';
+    card.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Init ────────────────────────────────────────────────
+  document.getElementById('shift-date').value = new Date().toISOString().slice(0, 10);
+  renderPinStatus();
+  renderSaved();
+  renderMonthly();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+</script>
+</body>
+</html>
